@@ -1,0 +1,107 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Learn&Hire - Celebrities Rekognition</title>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+        <style>
+            body {
+                font-family: "HelveticaNeue-Light","Helvetica Neue Light","HelveticaNeue","Helvetica Neue","Roboto-Light",Roboto,"Roboto-Regular",Helvetica,Arial,"Lucida Grande",sans-serif;
+            }
+            header {
+                color: #eee;
+                background-color: #232f3e;
+                text-align: center;
+                padding: 15px;
+            }
+            main {
+                display: flex;
+                margin-top: 20px;
+            }
+            section {
+                width: 50%;
+            }
+            aside {
+                width: 50%;
+            }
+            input {
+                width: 0.1px;
+                height: 0.1px;
+                opacity: 0;
+                overflow: hidden;
+                position: absolute;
+                z-index: -1;
+            }
+            input + label {
+                font-size: 18px;
+                font-weight: 400;
+                color: white;
+                background-color: black;
+                display: inline-block;
+                cursor: pointer;
+                padding: 5px;
+            }
+            input:focus + label, input + label:hover {
+                background-color: #444;
+            }
+            img {
+                max-height: 400px;
+            }
+        </style>
+    </head>
+        <body>
+            <header>
+                <h3>Learn&Hire - Celebrities Rekognition</h3>
+            </header>
+            <main>
+                <section>
+                    <form>
+                        <input accept="image/*" id="file" type="file" onchange="match(this)"/>
+                        <label for="file"><i class="fa fa-upload"></i>&nbsp;&nbsp;Upload an image...</label>
+                    </form>
+                    <img id="preview" />
+                </section>
+                <aside>
+                    <p id="name">Name:</p>
+                    <p id="confidence">Confidence:</p>
+                </aside>
+            </main>
+        </body>
+</html>
+
+<script>
+const api_endpoint = 'https://xxx.execute-api.ap-southeast-2.amazonaws.com/dev/';
+
+function match(input) {
+    console.log('File selected', input);
+
+    if (input.files && input.files[0]) {
+        const url_reader = new FileReader();
+        const binary_reader = new FileReader();
+
+        url_reader.onload = function(e) {
+            console.log('Image preview loaded', e);
+            document.getElementById('preview').src = e.target.result;
+        }
+
+        binary_reader.onload = function(e) {
+            console.log('Binary image loaded', e);
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', api_endpoint, true);
+            xhr.setRequestHeader('Content-Type', 'image/jpeg');
+
+            xhr.onreadystatechange = function() {
+                console.log('XHR response received');
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const response = JSON.parse(xhr.response);
+                    document.getElementById('name').innerHTML = 'Name: ' + response.name;
+                    document.getElementById('confidence').innerHTML = 'Confidence: ' + response.confidence + '%';
+                }
+            }
+            xhr.send(e.target.result);
+        }
+
+        url_reader.readAsDataURL(input.files[0]);
+        binary_reader.readAsArrayBuffer(input.files[0]);
+    }
+}
+</script>
