@@ -37,7 +37,7 @@
 ## URL to celebrity's page
 The API call RecognizeCelebrities sometimes returns a URL with a link to a webpage for the celebrity. The challenge is to modify the initial solution to pass this URL back to the HTML page and make the celebrity's name clickable there. Something like:
 
-`Name: [Charlize Theron](https://www.imdb.com/name/nm0000234/)`
+Name: [Charlize Theron](https://www.imdb.com/name/nm0000234/)
 
 We suggest to create a new resource in API Gateway rather than modifying the current one.
 
