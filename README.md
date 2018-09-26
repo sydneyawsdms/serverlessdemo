@@ -31,6 +31,51 @@
 
 ----
 
-## Extra challenges for the savvy
+# Extra challenges for the savvy
+*We created 6 extra challenges that can be built on top of the basic solution. Feel free to try to implement as many as you can in no particular order.*
 
-*coming soon...*
+## URL to celebrity's page
+The API call RecognizeCelebrities sometimes returns a URL with a link to a webpage for the celebrity. The challenge is to modify the initial solution to pass this URL back to the HTML page and make the celebrity's name clickable there. Something like:
+
+`Name: [Charlize Theron](https://www.imdb.com/name/nm0000234/)`
+
+We suggest to create a new resource in API Gateway rather than modifying the current one.
+
+## Recognise multiple celebrities
+The API call RecognizeCelebrities can actually recognise multiple celebrities from a single photo. Amend the resources involved to pass the list of recognised celebrities back to the HTML page and list them all there. Something like:
+
+```
+Name: Charlize Theron
+Confidence: 100%
+
+Name: Brad Pitt
+Confidence: 89%
+```
+
+We suggest to create a new resource in API Gateway rather than modifying the current one.
+
+## Lambda Proxy Integration
+Create a new resource in API Gateway with a POST method that points to the same Lambda function as the original solution: but this time using a proxy integration. Then amend the Lambda function to be able to correctly handle both proxy and non-proxy integration.
+
+## Without Lambda
+API Gateway can actually invoke Rekognition directly, without the need for Lambda. Create a new resource in API Gateway and implement the same solution without Lambda.
+
+## Lambda in VPC
+Enable VPC support for Lambda. Then make the necessary configuration to ensure Lambda is still able to invoke Rekognition.
+
+## Read out the celebrity's name
+Once the name of the celebrity is returned by Rekognition, pass it to [Amazon Polly](https://aws.amazon.com/polly/) to have it spelt out in the HTML page.
+
+# How we collect the challenges
+Each candidate will have to provide the following information:
+* Lambda functions code
+* Screenshot of the *Integration Request*
+* Mapping templates used on *Integration Request* and *Integration Response*
+* *API Gateway logs* for a successful *RequestId* (text file, you can copy from CloudWatch)
+
+Deliverables must be sent to the email: [syd-ana-l2h@amazon.com](mailto:syd-ana-l2h@amazon.com) along with the following information:
+* Candidate name
+* Candidate ID
+
+----
+**Good luck!!**
