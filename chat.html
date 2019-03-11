@@ -1,0 +1,281 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>DMS Learn&Hire - AI-powered Chat</title>
+        <style>
+            html, body {
+                margin: 0;
+                height: 100%;
+                min-height: 100%;
+                font-family: "Amazon Ember","HelveticaNeue","Helvetica Neue","Roboto","Roboto-Regular","Helvetica","Arial","sans-serif";
+                color: #16191f;
+                background-color: #f2f3f3;
+            }
+            body {
+                display: flex;
+                flex-direction: column;
+            }
+            header {
+                color: #eee;
+                background-color: #232f3e;
+                text-align: center;
+                border-style: solid;
+                border-color: #ccc;
+                border-width: 0 0 1px;
+                text-shadow: 0 1px 0 #000;
+                display: flex;
+            }
+            section.row {
+                flex-direction: row;
+                flex: 1;
+            }
+            #nickname {
+                height: 25px;
+                max-width: 170px;
+                color: #7b7b7b;
+                font-size: 15px;
+                margin: auto 5px 5px;
+            }
+            #empty {
+                flex: 1;
+            }
+            section.row #empty {
+                flex: 1;
+            }
+            header, footer {
+                flex: none;
+            }
+            main {
+                border-bottom: 1px solid #cfcfcf;
+                overflow-y: scroll;
+                -webkit-overflow-scrolling: touch;
+                flex: auto;
+                padding: 5px;
+            }
+            p {
+                display: flex;
+                margin: 3px;
+            }
+            p span {
+                margin: auto 0;
+            }
+            .sentiment {
+                font-size: 32px;
+                width: 40px;
+            }
+            .time {
+                width: 77px;
+                color: #ababab;
+                font-size: 13px;
+                margin-bottom: 1px;
+            }
+            .nickname {
+                padding-right: 7px;
+                color: #7b7b7b;
+                font-weight: bold;
+                font-size: 15px;
+            }
+            footer {
+                display: flex;
+                margin: 5px;
+            }
+            section {
+                display: flex;
+                flex-direction: column;
+                margin-right: 10px;
+            }
+            label.switch {
+                position: relative;
+                display: inline-block;
+                width: 120px;
+                height: 20px;
+                margin: 3px;
+            }
+            label.switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            label.switch1 {
+                position: relative;
+                display: inline-block;
+                width: 100px;
+                height: 20px;
+                margin: 3px;
+            }
+            label.switch1 input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 80px;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                -webkit-transition: .4s;
+                transition: .4s;
+                border-radius: 34px;
+            }
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 14px;
+                width: 14px;
+                left: 4px;
+                bottom: 3px;
+                background-color: white;
+                -webkit-transition: .4s;
+                transition: .4s;
+                border-radius: 50%;
+            }
+            input:checked + .slider {
+                background-color: #232f3e;
+            }
+            input:checked + .slider:before {
+                -webkit-transform: translateX(18px);
+                -ms-transform: translateX(18px);
+                transform: translateX(18px);
+            }
+            input[type="text"] {
+                border: 0;
+                height: 45px;
+                padding-left: 15px;
+                font-size: 14px;
+                flex-grow: 1;
+                border-radius: 34px;
+                margin: auto;
+            }
+            input:focus {
+                outline: 0;
+            }
+        </style>
+    </head>
+        <body>
+            <header>
+                <section class="row">
+                    <input type="text" id="nickname" placeholder="Enter your nickname" onfocusout="frozenNicknameInput()">
+                </section>
+                <h3>DMS Learn&Hire - AI-powered Chat</h3>
+                <div id="empty"></div>
+            </header>
+            <main></main>
+            <footer>
+                <section>
+                  <label for="connect" class="switch" title="">Connect
+                      <input type="checkbox" id="connect" onclick="connect();">
+                      <span class="slider round"></span>
+                  </label>
+                    <label for="translate" class="switch" title="Live-translate the message into English">Translate
+                        <input type="checkbox" id="translate">
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="sentiment" class="switch" title="Analyse the sentiment of the message">Sentiment
+                        <input type="checkbox" id="sentiment">
+                        <span class="slider round"></span>
+                    </label>
+                </section>
+                <input type="text" id="message" placeholder="Type your message here and press Enter" onkeypress="sendMessage(event);">
+            </footer>
+        </body>
+</html>
+
+<script>
+var ws;
+const websocketEndpoint = 'wss://xxx.execute-api.ap-southeast-2.amazonaws.com/dev/';
+
+const sentiments = {
+    POSITIVE: '😁',
+    NEGATIVE: '😡',
+    NEUTRAL: '😐',
+    MIXED: '😕'
+};
+
+function wsconnect() {
+  document.getElementsByTagName('main')[0].innerHTML = "";
+  var nickname = document.getElementById('nickname').value;
+  var querystring = (nickname) ? "?nickname=" + nickname : ""
+  ws = new WebSocket(websocketEndpoint + querystring);
+  ws.onopen = (event) => {
+    console.log('Connection established', event);
+    document.getElementsByTagName('main').innerHTML = "";
+  }
+  ws.onclose = (event) => { console.log('Connection closed', event); }
+  ws.onerror = (error) => { console.log('Connection error', error); }
+  ws.onmessage = (event) => {
+      console.log('New message received:', event);
+      const data = JSON.parse(event.data);
+      const main = document.getElementsByTagName('main');
+      const p = document.createElement('p');
+      const s_sentiment = document.createElement('span');
+      s_sentiment.className = 'sentiment';
+      s_sentiment.innerHTML = ' ';
+      if (typeof data.sentiment !== 'undefined') {
+          s_sentiment.innerHTML = sentiments[data.sentiment];
+      }
+      p.append(s_sentiment);
+      const s_time = document.createElement('span');
+      s_time.className = 'time';
+      s_time.innerHTML = formatTime(data.timestamp);
+      const s_nickname = document.createElement('span');
+      s_nickname.className = 'nickname';
+      s_nickname.innerHTML = data.nickname ? `${data.nickname} : ` : "Anonymous";
+      const s_message = document.createElement('span');
+      s_message.className = 'message';
+      s_message.innerHTML = data.message;
+      p.append(s_time);
+      p.append(s_nickname);
+      p.append(s_message);
+      main[0].appendChild(p);
+  }
+}
+
+function wsdisconnect(e) {
+  if ( !(ws === undefined) && ws.readyState == 1) {
+    ws.close();
+  }
+}
+
+function connect(e) {
+  var checkBox = document.getElementById("connect");
+  (checkBox.checked == true) ? wsconnect() : wsdisconnect();
+}
+
+function frozenNicknameInput(e) {
+  document.getElementById('nickname').readOnly = true;
+  document.getElementById('nickname').disabled = true;
+}
+
+function sendMessage(e) {
+    if (e.keyCode === 13) {
+        e.preventDefault();
+        const msg_body = document.getElementById('message').value;
+        document.getElementById('message').value = '';
+        const send_data = {
+            'action': 'sendmessage',
+            'message': msg_body,
+            'nickname': document.getElementById('nickname').value,
+            'translate': document.getElementById('translate').checked,
+            'sentiment': document.getElementById('sentiment').checked
+        };
+        ws.send(JSON.stringify(send_data));
+    }
+}
+
+function formatTime(timestamp) {
+    console.log(timestamp);
+    const date = new Date(timestamp * 1000);
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    let seconds = date.getSeconds();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    seconds = seconds < 10 ? '0' + seconds : seconds;
+    return hours + ':' + minutes + ':' + seconds + ' ' + ampm;
+}
+</script>
